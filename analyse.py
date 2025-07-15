@@ -126,7 +126,7 @@ def create_wind_speed_distribution_graph(file_name : str) -> None:
         hue_order=sorted_wind_levels
     )
 
-    plt.title('各月风力等级分布情况图', fontsize=20, pad=20)
+    plt.title('各月早晚风力等级分布情况图', fontsize=20, pad=20)
     plt.xlabel('月份', fontsize=14)
     plt.ylabel('年均出现次数', fontsize=14)
     plt.xticks(ticks=range(0, 12), labels=[f'{i+1}月' for i in range(12)], fontsize=12)
@@ -134,8 +134,8 @@ def create_wind_speed_distribution_graph(file_name : str) -> None:
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout(rect=[0, 0, 0.95, 1])
     os.makedirs('results', exist_ok=True)
-    plt.savefig(os.path.join('results', '风力等级分布情况图.png'))
-    logger.info(f'Graph saved to {os.path.join('results', '风力等级分布情况图.png')}')
+    plt.savefig(os.path.join('results', '早晚风力等级分布情况图.png'))
+    logger.info(f'Graph saved to {os.path.join('results', '早晚风力等级分布情况图.png')}')
 
 def create_weather_status_distribution_graph(file_name : str) -> None:
     '''This function takes a xlsx file as input and plots a graph showing the distribution of weather status in each month.\n
@@ -191,7 +191,7 @@ def create_weather_status_distribution_graph(file_name : str) -> None:
         palette='viridis'
     )
 
-    plt.title('各月天气状况分布图', fontsize=20, pad=20)
+    plt.title('各月早晚天气状况分布图', fontsize=20, pad=20)
     plt.xlabel('月份', fontsize=14)
     plt.ylabel('年均出现次数', fontsize=14)
     plt.xticks(ticks=range(0, 12), labels=[f'{i+1}月' for i in range(12)], fontsize=12)
@@ -199,8 +199,54 @@ def create_weather_status_distribution_graph(file_name : str) -> None:
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout(rect=[0, 0, 0.95, 1])
     os.makedirs('results', exist_ok=True)
-    plt.savefig(os.path.join('results', '天气状况分布图.png'))
-    logger.info(f'Graph saved to {os.path.join('results', '天气状况分布图.png')}')
+    plt.savefig(os.path.join('results', '早晚天气状况分布图.png'))
+    logger.info(f'Graph saved to {os.path.join('results', '早晚天气状况分布图.png')}')
+
+    logger.info('Creating simplified weather graph...')
+    def simplify_weather(weather : str) -> str:
+        if '雪' in weather: # rainy and snowy is considered as snowy weather
+            return '雪'
+        elif '雨' in weather:
+            return '雨'
+        else:
+            return weather
+        
+    weather_counts['简化天气'] = weather_counts['天气'].apply(simplify_weather)
+    simplified_weather_counts = weather_counts.groupby(['月', '简化天气'])['出现次数'].sum().reset_index()
+    simplified_weather_counts['年均出现次数'] = simplified_weather_counts['出现次数'] / years_count
+
+    simplified_weather_order = ['晴', '多云', '阴', '雨', '雪']
+    simplified_weather_list = cast(np.ndarray[np.str_], simplified_weather_counts['简化天气'].unique())
+    existing_simplified_weathers = list(simplified_weather_list)
+    sorted_simplified_weather = [w for w in simplified_weather_order if w in existing_simplified_weathers]
+    remaining_simplified_weather = [w for w in existing_simplified_weathers if w not in simplified_weather_order]
+    sorted_simplified_weather += remaining_simplified_weather
+    logger.info('Data simplified')
+    logger.debug(f'Result:\n\t{simplified_weather_counts}')
+
+    logger.info('Plotting...')
+    plt.rcParams['font.sans-serif'] = ['SimHei']
+    plt.figure(figsize=(14, 8))
+
+    sns.barplot(
+        data=simplified_weather_counts,
+        x='月',
+        y='年均出现次数',
+        hue='简化天气',
+        hue_order=sorted_simplified_weather,
+        palette='viridis'
+    )
+
+    plt.title('各月早晚天气状况分布图（简版）', fontsize=20, pad=20)
+    plt.xlabel('月份', fontsize=14)
+    plt.ylabel('年均出现次数', fontsize=14)
+    plt.xticks(ticks=range(0, 12), labels=[f'{i+1}月' for i in range(12)], fontsize=12)
+    plt.legend(title='天气', title_fontsize=11, fontsize=13, bbox_to_anchor=(1.01, 1), loc='upper left')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout(rect=[0, 0, 0.95, 1])
+    os.makedirs('results', exist_ok=True)
+    plt.savefig(os.path.join('results', '早晚天气状况分布图（简版）.png'))
+    logger.info(f'Graph saved to {os.path.join('results', '早晚天气状况分布图（简版）.png')}')
 
 def show_graph():
     '''just a wrapper for plt.show()
