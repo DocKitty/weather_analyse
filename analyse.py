@@ -31,7 +31,6 @@ def create_average_month_temperature_graph(file_name : str) -> None:
     df.dropna(subset=['最高温度/℃', '最低温度/℃'], inplace=True)
 
     monthly_avg_temps = df.groupby('月')[['最高温度/℃', '最低温度/℃']].mean()
-    #monthly_avg_temps = cast(pd.DataFrame, monthly_avg_temps) # this is a dataframe but pylance doesn't think so
     monthly_avg_temps.rename(columns={
         '最高温度/℃': '平均最高温度',
         '最低温度/℃': '平均最低温度'
