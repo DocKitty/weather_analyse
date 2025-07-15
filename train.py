@@ -3,7 +3,6 @@
 
 import os
 import pandas as pd
-import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 import sklearn.pipeline
@@ -72,7 +71,7 @@ def predict(model : sklearn.pipeline.Pipeline, month: list[int], compare_data_na
     
     logger.info('Predicting...')
     months_to_predict = pd.DataFrame({'月': month})
-    predicted_temps = cast(np.ndarray[np.float64], model.predict(months_to_predict)) # 100% sure this type is correct, make pylance type check happy
+    predicted_temps = model.predict(months_to_predict)
     results_df = pd.DataFrame({
         '月': month,
         '预测平均最高温度': predicted_temps

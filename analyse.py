@@ -3,10 +3,8 @@
 
 import os
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import cast
 import logging
 
 logger = logging.getLogger(__name__)
@@ -33,7 +31,7 @@ def create_average_month_temperature_graph(file_name : str) -> None:
     df.dropna(subset=['最高温度/℃', '最低温度/℃'], inplace=True)
 
     monthly_avg_temps = df.groupby('月')[['最高温度/℃', '最低温度/℃']].mean()
-    monthly_avg_temps = cast(pd.DataFrame, monthly_avg_temps) # this is a dataframe but pylance doesn't think so
+    #monthly_avg_temps = cast(pd.DataFrame, monthly_avg_temps) # this is a dataframe but pylance doesn't think so
     monthly_avg_temps.rename(columns={
         '最高温度/℃': '平均最高温度',
         '最低温度/℃': '平均最低温度'
@@ -87,8 +85,8 @@ def create_wind_speed_distribution_graph(file_name : str) -> None:
     df['夜间风力等级'] = df['夜间风力风向'].apply(extract_wind_force)
     years_count = df['年'].nunique()
 
-    day_slice = cast(pd.DataFrame, df[['月', '白天风力等级']]) # still this is a dataframe but pylance doesn't agree
-    night_slice = cast(pd.DataFrame, df[['月', '夜间风力等级']])
+    day_slice = df[['月', '白天风力等级']]
+    night_slice = df[['月', '夜间风力等级']]
     day_wind = day_slice.rename(columns={'白天风力等级': '风力等级'})
     night_wind = night_slice.rename(columns={'夜间风力等级': '风力等级'})
     all_wind_occurrences = pd.concat([day_wind, night_wind])
@@ -107,7 +105,7 @@ def create_wind_speed_distribution_graph(file_name : str) -> None:
             return int(match1) * 10
         return 99
 
-    unique_wind_levels = cast(np.ndarray[np.str_], wind_counts['风力等级'].unique()) # once again, pylance has its own opinion
+    unique_wind_levels = wind_counts['风力等级'].unique()
     sorted_wind_levels = sorted(unique_wind_levels, key=get_wind_sort_key)
     logger.info('Data process complete')
     logger.debug(f'Result:\n\t{wind_counts}')
@@ -132,7 +130,7 @@ def create_wind_speed_distribution_graph(file_name : str) -> None:
     plt.xticks(ticks=range(0, 12), labels=[f'{i+1}月' for i in range(12)], fontsize=12)
     plt.legend(title='风力等级', fontsize=11, title_fontsize=13, bbox_to_anchor=(1.01, 1), loc='upper left')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
-    plt.tight_layout(rect=[0, 0, 0.95, 1])
+    plt.tight_layout(rect=(0, 0, 0.95, 1))
     os.makedirs('results', exist_ok=True)
     plt.savefig(os.path.join('results', '早晚风力等级分布情况图.png'))
     logger.info(f'Graph saved to {os.path.join('results', '早晚风力等级分布情况图.png')}')
@@ -154,8 +152,8 @@ def create_weather_status_distribution_graph(file_name : str) -> None:
     df = pd.read_excel(data_path)
     logger.info('Data loaded, processing...')
 
-    day_slice = cast(pd.DataFrame, df[['月', '白天天气']]) # oh pylance what's wrong with you
-    night_slice = cast(pd.DataFrame, df[['月', '夜间天气']])
+    day_slice = df[['月', '白天天气']]
+    night_slice = df[['月', '夜间天气']]
     day_weather = day_slice.rename(columns={'白天天气': '天气'})
     night_weather = night_slice.rename(columns={'夜间天气': '天气'})
     weather = pd.concat([day_weather, night_weather])
@@ -170,7 +168,7 @@ def create_weather_status_distribution_graph(file_name : str) -> None:
         '阵雨', '雷阵雨',
         '雨夹雪', '阵雪', '小雪', '小到中雪', '中雪', '中到大雪', '大雪', '大到暴雪', '暴雪'
     ]
-    weather_list = cast(np.ndarray[np.str_], weather_counts['天气'].unique()) # fix pylance type check asap please
+    weather_list = weather_counts['天气'].unique()
     existing_weathers = list(weather_list)
     sorted_weather = [w for w in weather_order if w in existing_weathers]
     remaining_weather = [w for w in existing_weathers if w not in weather_order]
@@ -197,7 +195,7 @@ def create_weather_status_distribution_graph(file_name : str) -> None:
     plt.xticks(ticks=range(0, 12), labels=[f'{i+1}月' for i in range(12)], fontsize=12)
     plt.legend(title='天气', title_fontsize=11, fontsize=13, bbox_to_anchor=(1.01, 1), loc='upper left')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
-    plt.tight_layout(rect=[0, 0, 0.95, 1])
+    plt.tight_layout(rect=(0, 0, 0.95, 1))
     os.makedirs('results', exist_ok=True)
     plt.savefig(os.path.join('results', '早晚天气状况分布图.png'))
     logger.info(f'Graph saved to {os.path.join('results', '早晚天气状况分布图.png')}')
@@ -216,7 +214,7 @@ def create_weather_status_distribution_graph(file_name : str) -> None:
     simplified_weather_counts['年均出现次数'] = simplified_weather_counts['出现次数'] / years_count
 
     simplified_weather_order = ['晴', '多云', '阴', '雨', '雪']
-    simplified_weather_list = cast(np.ndarray[np.str_], simplified_weather_counts['简化天气'].unique())
+    simplified_weather_list = simplified_weather_counts['简化天气'].unique()
     existing_simplified_weathers = list(simplified_weather_list)
     sorted_simplified_weather = [w for w in simplified_weather_order if w in existing_simplified_weathers]
     remaining_simplified_weather = [w for w in existing_simplified_weathers if w not in simplified_weather_order]
@@ -243,7 +241,7 @@ def create_weather_status_distribution_graph(file_name : str) -> None:
     plt.xticks(ticks=range(0, 12), labels=[f'{i+1}月' for i in range(12)], fontsize=12)
     plt.legend(title='天气', title_fontsize=11, fontsize=13, bbox_to_anchor=(1.01, 1), loc='upper left')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
-    plt.tight_layout(rect=[0, 0, 0.95, 1])
+    plt.tight_layout(rect=(0, 0, 0.95, 1))
     os.makedirs('results', exist_ok=True)
     plt.savefig(os.path.join('results', '早晚天气状况分布图（简版）.png'))
     logger.info(f'Graph saved to {os.path.join('results', '早晚天气状况分布图（简版）.png')}')
